@@ -4,7 +4,6 @@ import numpy as np
 import math
 import glm
 import random
-from copy import deepcopy
 from threading import Thread
 from multiprocessing import JoinableQueue
 import sys
@@ -154,8 +153,8 @@ def cosWeightedHemisphereDirection(N):
     ys = math.cos(theta)
     zs = math.sin(theta) * math.sin(phi)
     
-    y = deepcopy(N)
-    h = deepcopy(y)
+    y = glm.vec3(N)
+    h = glm.vec3(y)
     if math.fabs(h.x) <= math.fabs(h.y) and math.fabs(h.x) <= math.fabs(h.z):
         h.x = 1.0
     elif math.fabs(h.y) <= math.fabs(h.x) and math.fabs(h.y) <= math.fabs(h.z):
