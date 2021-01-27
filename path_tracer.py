@@ -53,16 +53,13 @@ class Mesh(Shape):
             v0 = self.vertices[self.indices[i]]
             v1 = self.vertices[self.indices[i+1]]
             v2 = self.vertices[self.indices[i+2]]
-            #print("INDICES: " + str(self.indices[i]) + " " + str(self.indices[i+1]) + " " + str(self.indices[i+2]))
             curr_hit = Mesh.triangle_intersect(ray, v0, v1, v2)
-            #print("CURR HIT: " + str(curr_hit))
             if curr_hit > 0.0 and curr_hit < closest_hit:
                 closest_hit = curr_hit
                 final_v0 = v0 
                 final_v1 = v1 
                 final_v2 = v2
             
-       # print("NOW!")
         if closest_hit != 1000000000.0:
             return (closest_hit, Mesh.triangle_normal(final_v0, final_v1, final_v2), self.material)
         else:
@@ -174,7 +171,6 @@ def trace_path(ray, shapes, depth, max_depth):
         return glm.vec3(0)
     
     t, hit_normal, material = find_hit(ray, shapes)
-    #print(str(t) + " " + str(normal))
     if t == -1.0:
         return glm.vec3(0)
 
