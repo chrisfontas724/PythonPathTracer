@@ -35,6 +35,8 @@ class Shape:
     def __init__(self):
         return
 
+    # Intersects a ray with a shape - subclasses implement their own
+    # intersection routines.
     def intersect(self, ray):
         return -1.0
 
@@ -107,8 +109,6 @@ class Sphere(Shape):
     def normal(point):
         return glm.normalize(point - self.center)
 
-    # Intersects a ray with the sphere - returns -1 if there
-    # is no intersection.
     def intersect(self, ray):
         op = self.center-ray.origin 
         eps = 1e-4
@@ -121,11 +121,13 @@ class Sphere(Shape):
         t = b - det
 
         if b - det > eps:
-            return b - det 
+            t = b - det 
         elif b+det > eps:
-            return b + det
+            t = b + det
         else:
-            return -1.0
+            t = -1.0
+
+        return (t, self.normal(ray.origin + t*ray.direction), self.material) if t != -1.0 else (-1, None, None)
 
 def find_hit(ray, shapes):
     closest_hit = 10000000000
@@ -177,22 +179,23 @@ def trace_path(ray, shapes, depth, max_depth):
     emittance = material.emissive_color
     hit_point = ray.origin + t*ray.direction
 
-    # Pick a random direction
+    # Pick a new ray direction using cosine weighted hemisphere sampling. This sampling
+    # is not uniform and the PDF is cosTheta / pi.
     newRay = Ray()
     newRay.direction = cosWeightedHemisphereDirection(hit_normal)
-    assert glm.dot(newRay.direction, hit_normal) > 0.0, "Dir: " + str(newRay.direction)
+    assert glm.dot(newRay.direction, hit_normal)
+
+    # Add a small epsilon to the new ray starting point to prevent self-intersection
+    # with the object its already on.
     newRay.origin = hit_point + 0.001*newRay.direction
 
-    # Probability of a new ray
-    # cos_theta = glm.dot(newRay.direction, hit_normal)
-    # p = cos_theta / math.pi
-    # assert  p > 0.0, "P is " + str(p)
-
-    # Compute the BRDF for the ray
-    BRDF = material.diffuse_color # / math.pi 
-    incoming_light = trace_path(newRay, shapes, depth + 1, max_depth)
-
-    return emittance + BRDF * incoming_light  #* cos_theta)  #/ p
+    # The PDF for the new ray direction is cosTheta / pi. At the same time,
+    # the radiance we are calculating is IncomingLight * (BRDF / PI) * cosTheta.
+    # This means that both the cosTheta term and the pi term cancel out, and we
+    # are left with just BRDF * incoming light. This only works out this way in
+    # this particular scenario of using cosine-weighted hemisphere sampling and
+    # a completely lambertian material.
+    return emittance + material.diffuse_color * trace_path(newRay, shapes, depth + 1, max_depth)
     
 
 # Creates an image from the pixel data.
@@ -271,40 +274,40 @@ def main():
     camera = Camera()
 
     shapes = [
-        # Floor
+        # Floor - White
         Rectangle(glm.vec3(552.8, 0.0, 0.0),
                   glm.vec3(0),
                   glm.vec3(0,0, 559.2),
                   glm.vec3(549.6, 0.0, 559.2),
-                  Material()),
+                  Material(diffuse = glm.vec3(0.9))),
 
         # Left wall - Red
         Rectangle(glm.vec3(552.8,   0.0,   0.0),
                   glm.vec3(549.6,   0.0, 559.2),
                   glm.vec3(556.0, 548.8, 559.2),
                   glm.vec3(556.0, 548.8,   0.0),
-                  Material(diffuse = glm.vec3(1,0,0))),
+                  Material(diffuse = glm.vec3(0.9,0.1,0.1))),
 
         # Right wall - Green
         Rectangle(glm.vec3(0.0,  0.0, 559.2),
                   glm.vec3(0.0,   0.0,   0.0),
                   glm.vec3(0.0, 548.8,   0.0),
                   glm.vec3(0.0, 548.8, 559.2),
-                  Material(diffuse = glm.vec3(0,1,0))),
+                  Material(diffuse = glm.vec3(0.1,0.9,0.1))),
 
         # Back wall - White
         Rectangle(glm.vec3(549.6, 0.0, 559.2),
                   glm.vec3(0.0,  0.0, 559.2),
                   glm.vec3(0.0, 548.8, 559.2),
                   glm.vec3(556.0, 548.8, 559.2),
-                  Material(diffuse = glm.vec3(1,1,1))),
+                  Material(diffuse = glm.vec3(0.9))),
 
         # Ceiling - White
         Rectangle(glm.vec3(556.0, 548.8, 0.0),
                   glm.vec3(556.0, 548.8, 559.2),
                   glm.vec3(0.0, 548.8, 559.2),
                   glm.vec3(0.0, 548.8, 0.0),
-                  Material(diffuse = glm.vec3(1,1,1))),
+                  Material(diffuse = glm.vec3(0.9))),
 
         # Light
         Rectangle(glm.vec3(343.0, 548.75, 227.0),
@@ -345,7 +348,7 @@ def main():
                12, 13, 14, 12, 14, 15,
                16, 17, 18, 16, 18, 19],
 
-               Material()),
+               Material(diffuse = glm.vec3(0.7))),
 
          # Short box - White
         Mesh([glm.vec3(130.0, 165.0, 65.0),
@@ -379,7 +382,7 @@ def main():
               12, 13, 14, 12, 14, 15,
               16, 17, 18, 16, 18, 19],
 
-              Material())
+              Material(diffuse = glm.vec3(0.7)))
     ]
 
     q = JoinableQueue()
@@ -424,8 +427,9 @@ def main():
     b = datetime.datetime.now()
     print("Time Elapsed: " + str(b-a))
 
+    image_name = "path_trace_" + str(x_res) + "x" + str(y_res) + "_" + str(samples) + ".png"
     image = numpy2pil(pixel_data)
-    image.save("path_tracing_multithread_final.png", "PNG")
+    image.save(image_name, "PNG")
 
 if __name__ == "__main__":
     main()
