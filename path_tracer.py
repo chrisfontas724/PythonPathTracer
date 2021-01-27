@@ -350,7 +350,7 @@ def main():
 
                Material(diffuse = glm.vec3(0.7))),
 
-         # Short box - White
+        # Short box - White
         Mesh([glm.vec3(130.0, 165.0, 65.0),
               glm.vec3(82.0, 165.0, 225.0),
               glm.vec3(240.0, 165.0, 272.0),
