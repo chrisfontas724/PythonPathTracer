@@ -39,11 +39,35 @@ class Shape:
         return -1.0
 
 class Mesh(Shape):
-    def __init__(self):
-        return
+    def __init__(self, vertices, indices, material):
+        self.vertices = vertices
+        self.indices = indices
+        self.material = material
 
     def intersect(self, ray):
-        return -1.0
+        closest_hit = 1000000000.0
+        final_v0 = 0 
+        final_v1 = 0 
+        final_v2 = 0
+        for i in range(0, len(self.indices), 3):
+            v0 = self.vertices[self.indices[i]]
+            v1 = self.vertices[self.indices[i+1]]
+            v2 = self.vertices[self.indices[i+2]]
+            #print("INDICES: " + str(self.indices[i]) + " " + str(self.indices[i+1]) + " " + str(self.indices[i+2]))
+            curr_hit = Mesh.triangle_intersect(ray, v0, v1, v2)
+            #print("CURR HIT: " + str(curr_hit))
+            if curr_hit > 0.0 and curr_hit < closest_hit:
+                closest_hit = curr_hit
+                final_v0 = v0 
+                final_v1 = v1 
+                final_v2 = v2
+            
+       # print("NOW!")
+        if closest_hit != 1000000000.0:
+            return (closest_hit, Mesh.triangle_normal(final_v0, final_v1, final_v2), self.material)
+        else:
+            return (-1, None, None)
+        
 
     def triangle_normal(v0, v1, v2):
         return glm.normalize(glm.cross(v0-v1, v0-v2))
@@ -74,21 +98,7 @@ class Mesh(Shape):
 
 class Rectangle(Mesh):
     def __init__(self, v0, v1, v2, v3, material):
-        self.v0 = v0
-        self.v1 = v1
-        self.v2 = v2
-        self.v3 = v3 
-        self.material = material
-
-    def normal(self, point):
-        return Mesh.triangle_normal(self.v0, self.v1, self.v2)
-
-    def intersect(self, ray):
-        t1 = Mesh.triangle_intersect(ray, self.v0, self.v1, self.v2)
-        t2 = Mesh.triangle_intersect(ray, self.v0, self.v2, self.v3)
-        if t1 > 0: return t1 
-        else: return t2
-
+        Mesh.__init__(self, [v0, v1, v2, v3], [0, 1, 2, 0, 2, 3], material)
 
 class Sphere(Shape):
     def __init__(self, radius=1.0, center=glm.vec3(0), diffuse=glm.vec3(1), specular=glm.vec3(0), percent=1.0):
@@ -122,14 +132,14 @@ class Sphere(Shape):
 
 def find_hit(ray, shapes):
     closest_hit = 10000000000
-    obj = None
+    final_hit = (-1, None, None)
     for shape in shapes:
         hit = shape.intersect(ray)
-        if hit > 0 and hit < closest_hit:
-            closest_hit = hit
-            obj = shape
+        if hit[0] > 0 and hit[0] < closest_hit:
+            closest_hit = hit[0]
+            final_hit = hit
 
-    return (closest_hit, obj) if obj is not None else (-1.0, None)
+    return final_hit
     
 
 # Returns a vector in the hemisphere around N with a cosine weighted
@@ -163,15 +173,13 @@ def trace_path(ray, shapes, depth, max_depth):
     if depth > max_depth:
         return glm.vec3(0)
     
-    t, shape = find_hit(ray, shapes)
+    t, hit_normal, material = find_hit(ray, shapes)
+    #print(str(t) + " " + str(normal))
     if t == -1.0:
         return glm.vec3(0)
 
-    material = shape.material
     emittance = material.emissive_color
-
     hit_point = ray.origin + t*ray.direction
-    hit_normal = shape.normal(hit_point)
 
     # Pick a random direction
     newRay = Ray()
@@ -330,7 +338,7 @@ def main():
             q.task_done()
 
     threads = []
-    num_worker_threads = 5
+    num_worker_threads = 10
     for i in range(num_worker_threads):
         t = Thread(target=worker)
         t.start()
