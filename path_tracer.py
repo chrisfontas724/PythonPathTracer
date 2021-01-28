@@ -207,7 +207,7 @@ def numpy2pil(np_array: np.ndarray) -> Image:
     assert len(np_array.shape) == 3, assert_msg
     assert np_array.shape[2] == 3, assert_msg
 
-    img = Image.fromarray(np.uint8(np_array*255), 'RGB')
+    img = Image.fromarray(np.uint8(np.clip(np_array, 0.0, 1.0)*255), 'RGB')
     return img
 
 def get_options():
@@ -285,14 +285,14 @@ def main():
                   glm.vec3(549.6,   0.0, 559.2),
                   glm.vec3(556.0, 548.8, 559.2),
                   glm.vec3(556.0, 548.8,   0.0),
-                  Material(diffuse = glm.vec3(0.9,0.1,0.1))),
+                  Material(diffuse = glm.vec3(0.9,0.05,0.05))),
 
         # Right wall - Green
         Rectangle(glm.vec3(0.0,  0.0, 559.2),
                   glm.vec3(0.0,   0.0,   0.0),
                   glm.vec3(0.0, 548.8,   0.0),
                   glm.vec3(0.0, 548.8, 559.2),
-                  Material(diffuse = glm.vec3(0.1,0.9,0.1))),
+                  Material(diffuse = glm.vec3(0.05,0.9,0.05))),
 
         # Back wall - White
         Rectangle(glm.vec3(549.6, 0.0, 559.2),
@@ -313,7 +313,7 @@ def main():
                   glm.vec3(343.0, 548.75, 332.0),
                   glm.vec3(213.0, 548.75, 332.0),
                   glm.vec3(213.0, 548.75, 227.0),
-                  Material(diffuse = glm.vec3(0), emission = glm.vec3(20000, 20000, 20000))),
+                  Material(diffuse = glm.vec3(0), emission = glm.vec3(1000, 1000, 1000))),
 
         # Tall box - White
         Mesh([glm.vec3(423.0, 330.0, 247.0),
