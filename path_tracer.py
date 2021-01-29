@@ -30,6 +30,56 @@ class Material:
         self.emissive_color = emission
         self.diffuse_percent = percent
 
+class BoundingBox:
+    def __init__(self, vertices):
+        min_pos = glm.vec3(100000000)
+        max_pos = glm.vec3(-100000000)
+        for v in vertices:
+            if v.x < min_pos.x: min_pos.x = v.x
+            if v.y < min_pos.y: min_pos.y = v.y
+            if v.z < min_pos.z: min_pos.z = v.z
+            if v.x > max_pos.x: max_pos.x = v.x
+            if v.y > max_pos.y: max_pos.y = v.y
+            if v.z > max_pos.z: max_pos.z = v.z
+        self.min = min_pos
+        self.max = max_pos
+
+    def intersect(self, ray):
+        tmin = (self.min.x - ray.origin.x) / (ray.direction.x + 0.0001)
+        tmax = (self.max.x - ray.origin.x) / (ray.direction.x + 0.0001)
+ 
+        if tmin > tmax:  tmin, tmax = tmax, tmin
+ 
+        tymin = (self.min.y - ray.origin.y) / (ray.direction.y + 0.0001)
+        tymax = (self.max.y - ray.origin.y) / (ray.direction.y + 0.0001)
+ 
+        if tymin > tymax: tymin, tymax = tymax, tymin 
+ 
+        if (tmin > tymax) or (tymin > tmax):
+            return False 
+ 
+        if tymin > tmin:
+            tmin = tymin 
+ 
+        if tymax < tmax:
+            tmax = tymax 
+ 
+        tzmin = (self.min.z - ray.origin.z) / (ray.direction.z + 0.0001)
+        tzmax = (self.max.z - ray.origin.z) / (ray.direction.z + 0.0001)
+ 
+        if tzmin > tzmax: tzmin, tzmax = tzmax, tzmin
+ 
+        if (tmin > tzmax) or (tzmin > tmax):
+            return False
+ 
+        if tzmin > tmin:
+            tmin = tzmin
+ 
+        if tzmax < tmax:
+            tmax = tzmax 
+ 
+        return True; 
+
 class Shape:
     def __init__(self):
         return
@@ -44,8 +94,12 @@ class Mesh(Shape):
         self.vertices = vertices
         self.indices = indices
         self.material = material
+        self.bbox = BoundingBox(vertices)
 
     def intersect(self, ray):
+        if not self.bbox.intersect(ray):
+            return (-1, None, None)
+
         closest_hit = 1000000000.0
         final_v0 = 0 
         final_v1 = 0 
@@ -196,7 +250,6 @@ def trace_path(ray, shapes, depth, max_depth):
     # a completely lambertian material.
     return emittance + material.diffuse_color * trace_path(newRay, shapes, depth + 1, max_depth)
     
-
 # Creates an image from the pixel data.
 def numpy2pil(np_array: np.ndarray) -> Image:
     """
@@ -207,7 +260,7 @@ def numpy2pil(np_array: np.ndarray) -> Image:
     assert len(np_array.shape) == 3, assert_msg
     assert np_array.shape[2] == 3, assert_msg
 
-    img = Image.fromarray(np.uint8(np.clip(np_array, 0.0, 1.0)*255), 'RGB')
+    img = Image.fromarray(np.uint8(np.clip(np.power(np_array, 1.0/2.2), 0.0, 1.0)*255), 'RGB')
     return img
 
 def get_options():
@@ -224,7 +277,6 @@ def get_options():
                       dest="y_res",
                       default=512,
                       help="Pick the width of the output image in pixelspace")
-
 
     parser.add_option("-s", "--samples",
                       action="store", # The number of samples per pixel
@@ -313,7 +365,7 @@ def main():
                   glm.vec3(343.0, 548.75, 332.0),
                   glm.vec3(213.0, 548.75, 332.0),
                   glm.vec3(213.0, 548.75, 227.0),
-                  Material(diffuse = glm.vec3(0), emission = glm.vec3(1000, 1000, 1000))),
+                  Material(diffuse = glm.vec3(0), emission = glm.vec3(50, 50, 50))),
 
         # Tall box - White
         Mesh([glm.vec3(423.0, 330.0, 247.0),
