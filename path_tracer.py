@@ -84,7 +84,7 @@ class DiffuseMaterial(Material):
 
 
 class MirrorMaterial(Material):
-    def __init__(self)
+    def __init__(self):
         return
 
 class BoundingBox:
@@ -360,42 +360,42 @@ def main():
                   glm.vec3(0),
                   glm.vec3(0,0, 559.2),
                   glm.vec3(549.6, 0.0, 559.2),
-                  Material(diffuse = glm.vec3(0.9))),
+                  DiffuseMaterial(diffuse = glm.vec3(0.9))),
 
         # Left wall - Red
         Rectangle(glm.vec3(552.8,   0.0,   0.0),
                   glm.vec3(549.6,   0.0, 559.2),
                   glm.vec3(556.0, 548.8, 559.2),
                   glm.vec3(556.0, 548.8,   0.0),
-                  Material(diffuse = glm.vec3(0.9,0.05,0.05))),
+                  DiffuseMaterial(diffuse = glm.vec3(0.9,0.05,0.05))),
 
         # Right wall - Green
         Rectangle(glm.vec3(0.0,  0.0, 559.2),
                   glm.vec3(0.0,   0.0,   0.0),
                   glm.vec3(0.0, 548.8,   0.0),
                   glm.vec3(0.0, 548.8, 559.2),
-                  Material(diffuse = glm.vec3(0.05,0.9,0.05))),
+                  DiffuseMaterial(diffuse = glm.vec3(0.05,0.9,0.05))),
 
         # Back wall - White
         Rectangle(glm.vec3(549.6, 0.0, 559.2),
                   glm.vec3(0.0,  0.0, 559.2),
                   glm.vec3(0.0, 548.8, 559.2),
                   glm.vec3(556.0, 548.8, 559.2),
-                  Material(diffuse = glm.vec3(0.9))),
+                  DiffuseMaterial(diffuse = glm.vec3(0.9))),
 
         # Ceiling - White
         Rectangle(glm.vec3(556.0, 548.8, 0.0),
                   glm.vec3(556.0, 548.8, 559.2),
                   glm.vec3(0.0, 548.8, 559.2),
                   glm.vec3(0.0, 548.8, 0.0),
-                  Material(diffuse = glm.vec3(0.9))),
+                  DiffuseMaterial(diffuse = glm.vec3(0.9))),
 
         # Light
         Rectangle(glm.vec3(343.0, 548.75, 227.0),
                   glm.vec3(343.0, 548.75, 332.0),
                   glm.vec3(213.0, 548.75, 332.0),
                   glm.vec3(213.0, 548.75, 227.0),
-                  Material(diffuse = glm.vec3(0), emission = glm.vec3(50, 50, 50))),
+                  DiffuseMaterial(diffuse = glm.vec3(0), emission = glm.vec3(50, 50, 50))),
 
         # Tall box - White
         Mesh([glm.vec3(423.0, 330.0, 247.0),
@@ -429,7 +429,7 @@ def main():
                12, 13, 14, 12, 14, 15,
                16, 17, 18, 16, 18, 19],
 
-               Material(diffuse = glm.vec3(0.7))),
+               DiffuseMaterial(diffuse = glm.vec3(0.7))),
 
         # Short box - White
         Mesh([glm.vec3(130.0, 165.0, 65.0),
@@ -463,7 +463,7 @@ def main():
               12, 13, 14, 12, 14, 15,
               16, 17, 18, 16, 18, 19],
 
-              Material(diffuse = glm.vec3(0.7)))
+              DiffuseMaterial(diffuse = glm.vec3(0.7)))
     ]
 
     q = JoinableQueue()
