@@ -268,7 +268,7 @@ def trace_path(ray, shapes, depth, max_depth):
     hit_point = ray.origin + t*ray.direction
 
     # Pick a new ray direction which depends on the properties of the given material.
-    newRay, pdf = material.sample_ray(ray, hit_normal)
+    newRay, pdf = material.sample_ray(ray, hit_normal, hit_point)
 
     # The percentage of light transmitted between the incoming and outgoing ray directions.
     # This changes depending on the type of material.
@@ -278,7 +278,7 @@ def trace_path(ray, shapes, depth, max_depth):
     incoming_light = trace_path(newRay, shapes, depth + 1, max_depth)
 
     # The integrand is emittance + BRDF * cosTheta * light.
-    return emittance + brdf * math.cos(newRay.direction, N) * incoming_light
+    return emittance + brdf * math.cos(newRay.direction, hit_normal) * incoming_light
     
 # Creates an image from the pixel data.
 def numpy2pil(np_array: np.ndarray) -> Image:
