@@ -80,7 +80,7 @@ class DiffuseMaterial(Material):
         # Add a small epsilon to the new ray starting point to prevent self-intersection
         # with the object its already on.
         new_ray.origin = P + 0.001 * new_dir
-        return (new_ray, glm.dot(new_dir, norm) / math.pi)
+        return (new_ray, glm.dot(new_dir, N) / math.pi)
 
 
 class MirrorMaterial(Material):
