@@ -24,9 +24,16 @@ class Ray:
         self.direction = direction
 
 class Material:
+    # The bidirectional reflectance distribution function which returns
+    # the percentage of light reflected in direction w_o from direction w_i
+    # at location p with normal N.
+    def brdf(w_i, w_o, n, p):
+        return glm.vec3(0)
 
-    def sample_ray(ray):
-        return
+    # Material subclasses implement their own sample functions which
+    # return a new ray along with the pdf of that ray.
+    def sample_ray(ray, N, P):
+        return (None, 0)
 
 class DiffuseMaterial(Material):
     def __init__(self, diffuse=glm.vec3(1), specular=glm.vec3(0), emission = glm.vec3(0), percent=1):
@@ -34,6 +41,47 @@ class DiffuseMaterial(Material):
         self.specular_color = specular
         self.emissive_color = emission
         self.diffuse_percent = percent
+
+    # The diffuse BRDF is equal in all directions with a cosine falloff.
+    def brdf(w_i, w_o, n, p):
+        return self.diffuse_color / math.pi
+
+    # Returns a vector in the hemisphere around N with a cosine weighted
+    # distribution to avoid clumping along with the pdf of cos(theta) / Pi.
+    def sample_ray(ray, N, P):
+        xi1 = random.uniform(0, 1)
+        xi2 = random.uniform(0, 1)
+    
+        theta = math.acos(math.sqrt(float(1.)-xi1))
+        phi = 2.0*math.pi*xi2
+    
+        xs = math.sin(theta) * math.cos(phi)
+        ys = math.cos(theta)
+        zs = math.sin(theta) * math.sin(phi)
+    
+        y = glm.vec3(N)
+        h = glm.vec3(y)
+        if math.fabs(h.x) <= math.fabs(h.y) and math.fabs(h.x) <= math.fabs(h.z):
+            h.x = 1.0
+        elif math.fabs(h.y) <= math.fabs(h.x) and math.fabs(h.y) <= math.fabs(h.z):
+            h.y= 1.0
+        else:
+            h.z = 1.0
+
+        x = glm.normalize(glm.cross(h,y))
+        z = glm.normalize(glm.cross(x,y))
+
+        new_dir = glm.normalize(xs*x + ys*y + zs*z)
+        assert glm.dot(new_dir, N)
+
+        new_ray = Ray()
+        new_ray.direction = new_dir
+
+        # Add a small epsilon to the new ray starting point to prevent self-intersection
+        # with the object its already on.
+        new_ray.origin = P + 0.001 * new_dir
+        return (new_ray, glm.dot(new_dir, norm) / math.pi)
+
 
 class MirrorMaterial(Material):
     def __init__(self)
@@ -208,32 +256,7 @@ def find_hit(ray, shapes):
     return final_hit
     
 
-# Returns a vector in the hemisphere around N with a cosine weighted
-# distribution to avoid clumping.
-def cosWeightedHemisphereDirection(N):
-    xi1 = random.uniform(0, 1)
-    xi2 = random.uniform(0, 1)
-    
-    theta = math.acos(math.sqrt(float(1.)-xi1))
-    phi = 2.0*math.pi*xi2
-    
-    xs = math.sin(theta) * math.cos(phi)
-    ys = math.cos(theta)
-    zs = math.sin(theta) * math.sin(phi)
-    
-    y = glm.vec3(N)
-    h = glm.vec3(y)
-    if math.fabs(h.x) <= math.fabs(h.y) and math.fabs(h.x) <= math.fabs(h.z):
-        h.x = 1.0
-    elif math.fabs(h.y) <= math.fabs(h.x) and math.fabs(h.y) <= math.fabs(h.z):
-        h.y= 1.0
-    else:
-        h.z = 1.0
 
-    x = glm.normalize(glm.cross(h,y))
-    z = glm.normalize(glm.cross(x,y))
-    
-    return glm.normalize(xs*x + ys*y + zs*z)
 
 def trace_path(ray, shapes, depth, max_depth):
     if depth > max_depth:
@@ -248,13 +271,13 @@ def trace_path(ray, shapes, depth, max_depth):
 
     # Pick a new ray direction using cosine weighted hemisphere sampling. This sampling
     # is not uniform and the PDF is cosTheta / pi.
-    newRay = Ray()
-    newRay.direction = cosWeightedHemisphereDirection(hit_normal)
-    assert glm.dot(newRay.direction, hit_normal)
+    newRay, pdf = material.sample_ray(ray, hit_normal)
 
-    # Add a small epsilon to the new ray starting point to prevent self-intersection
-    # with the object its already on.
-    newRay.origin = hit_point + 0.001*newRay.direction
+    brdf = material.brdf(-ray.direction, newRay.direction, hit_normal, hit_point)
+
+    incoming_light = trace_path(newRay, shapes, depth + 1, max_depth)
+
+    return emittance + brdf * incoming_light
 
     # The PDF for the new ray direction is cosTheta / pi. At the same time,
     # the radiance we are calculating is IncomingLight * (BRDF / PI) * cosTheta.
