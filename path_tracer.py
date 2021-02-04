@@ -24,11 +24,20 @@ class Ray:
         self.direction = direction
 
 class Material:
+
+    def sample_ray(ray):
+        return
+
+class DiffuseMaterial(Material):
     def __init__(self, diffuse=glm.vec3(1), specular=glm.vec3(0), emission = glm.vec3(0), percent=1):
         self.diffuse_color = diffuse
         self.specular_color = specular
         self.emissive_color = emission
         self.diffuse_percent = percent
+
+class MirrorMaterial(Material):
+    def __init__(self)
+        return
 
 class BoundingBox:
     def __init__(self, vertices):
@@ -181,6 +190,11 @@ class Sphere(Shape):
             t = -1.0
 
         return (t, self.normal(ray.origin + t*ray.direction), self.material) if t != -1.0 else (-1, None, None)
+
+class Scene:
+    def __init__(self, camera, shapes):
+        self.camera = camera
+        self.shapes = shapes
 
 def find_hit(ray, shapes):
     closest_hit = 10000000000
