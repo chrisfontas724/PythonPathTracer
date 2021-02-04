@@ -278,7 +278,7 @@ def trace_path(ray, shapes, depth, max_depth):
     incoming_light = trace_path(newRay, shapes, depth + 1, max_depth)
 
     # The integrand is emittance + BRDF * cosTheta * light.
-    return emittance + brdf * math.cos(newRay.direction, hit_normal) * incoming_light
+    return emittance + brdf * glm.dot(newRay.direction, hit_normal) * incoming_light
     
 # Creates an image from the pixel data.
 def numpy2pil(np_array: np.ndarray) -> Image:
