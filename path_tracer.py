@@ -232,7 +232,7 @@ class Sphere(Shape):
 
         if b - det > eps:
             t = b - det 
-        elif b+det > eps:
+        elif b + det > eps:
             t = b + det
         else:
             t = -1.0
@@ -254,8 +254,6 @@ def find_hit(ray, shapes):
             final_hit = hit
 
     return final_hit
-    
-
 
 
 def trace_path(ray, shapes, depth, max_depth):
@@ -269,23 +267,18 @@ def trace_path(ray, shapes, depth, max_depth):
     emittance = material.emissive_color
     hit_point = ray.origin + t*ray.direction
 
-    # Pick a new ray direction using cosine weighted hemisphere sampling. This sampling
-    # is not uniform and the PDF is cosTheta / pi.
+    # Pick a new ray direction which depends on the properties of the given material.
     newRay, pdf = material.sample_ray(ray, hit_normal)
 
+    # The percentage of light transmitted between the incoming and outgoing ray directions.
+    # This changes depending on the type of material.
     brdf = material.brdf(-ray.direction, newRay.direction, hit_normal, hit_point)
 
+    # Recurse with the new ray and continue accumulating radiance.
     incoming_light = trace_path(newRay, shapes, depth + 1, max_depth)
 
-    return emittance + brdf * incoming_light
-
-    # The PDF for the new ray direction is cosTheta / pi. At the same time,
-    # the radiance we are calculating is IncomingLight * (BRDF / PI) * cosTheta.
-    # This means that both the cosTheta term and the pi term cancel out, and we
-    # are left with just BRDF * incoming light. This only works out this way in
-    # this particular scenario of using cosine-weighted hemisphere sampling and
-    # a completely lambertian material.
-    return emittance + material.diffuse_color * trace_path(newRay, shapes, depth + 1, max_depth)
+    # The integrand is emittance + BRDF * cosTheta * light.
+    return emittance + brdf * math.cos(newRay.direction, N) * incoming_light
     
 # Creates an image from the pixel data.
 def numpy2pil(np_array: np.ndarray) -> Image:
