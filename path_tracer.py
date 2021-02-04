@@ -27,12 +27,12 @@ class Material:
     # The bidirectional reflectance distribution function which returns
     # the percentage of light reflected in direction w_o from direction w_i
     # at location p with normal N.
-    def brdf(w_i, w_o, n, p):
+    def brdf(self, w_i, w_o, n, p):
         return glm.vec3(0)
 
     # Material subclasses implement their own sample functions which
     # return a new ray along with the pdf of that ray.
-    def sample_ray(ray, N, P):
+    def sample_ray(self, ray, N, P):
         return (None, 0)
 
 class DiffuseMaterial(Material):
@@ -43,12 +43,12 @@ class DiffuseMaterial(Material):
         self.diffuse_percent = percent
 
     # The diffuse BRDF is equal in all directions with a cosine falloff.
-    def brdf(w_i, w_o, n, p):
+    def brdf(self, w_i, w_o, n, p):
         return self.diffuse_color / math.pi
 
     # Returns a vector in the hemisphere around N with a cosine weighted
     # distribution to avoid clumping along with the pdf of cos(theta) / Pi.
-    def sample_ray(ray, N, P):
+    def sample_ray(self, ray, N, P):
         xi1 = random.uniform(0, 1)
         xi2 = random.uniform(0, 1)
     
