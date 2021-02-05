@@ -10,16 +10,12 @@ from scenes import *
     
 # Creates an image from the pixel data.
 def numpy2pil(np_array: np.ndarray) -> Image:
-    """
-    Convert an HxWx3 numpy array into an RGB Image
-    """
-    assert_msg = 'Input shall be a HxWx3 ndarray'
+    # Convert an HxWx3 numpy array into an RGB Image
     assert isinstance(np_array, np.ndarray), assert_msg
     assert len(np_array.shape) == 3, assert_msg
     assert np_array.shape[2] == 3, assert_msg
 
-    img = Image.fromarray(np.uint8(np.clip(np.power(np_array, 1.0/2.2), 0.0, 1.0)*255), 'RGB')
-    return img
+    return Image.fromarray(np.uint8(np.clip(np.power(np_array, 1.0/2.2), 0.0, 1.0)*255), 'RGB')
 
 def get_options():
     parser = OptionParser(version="%prog 1.0")
