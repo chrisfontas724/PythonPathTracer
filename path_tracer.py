@@ -87,26 +87,6 @@ def get_options():
     return parser.parse_args()
 
 
-def generate_ray(pixel_x, pixel_y, image_width, image_height, camera):
-    image_aspect_ratio = float(image_width) / float(image_height)
-
-    alpha = 2.0 * math.atan(1.0 / (2.0 * camera.focal_length)) 
-
-    s_1 = random.uniform(0,1)
-    s_2 = random.uniform(0,1)
-
-    pixel_ndc_x = (pixel_x + s_1) / image_width
-    pixel_ndc_y = (pixel_y + s_2) / image_height 
-
-    pixel_screen_x = 2.0 * pixel_ndc_x - 1.0
-    pixel_screen_y = 2.0 * pixel_ndc_y - 1.0
-
-    pixel_camera_x = pixel_screen_x * camera.width * image_aspect_ratio * math.tan(alpha/2)
-    pixel_camera_y = pixel_screen_y * camera.height * math.tan(alpha/2)
-
-    camera_point = glm.vec3(pixel_camera_x, pixel_camera_y, -1.0)
-    return Ray(camera.position, glm.normalize(-camera_point))
-
 def main():
     # Grab the command line options.
     options, args = get_options()
@@ -129,7 +109,7 @@ def main():
             x,y = pixel
             color = glm.vec3(0)
             for s in range(samples):
-                ray = generate_ray(x, y, x_res, y_res, scene.camera)
+                ray = scene.camera.generate_ray(x, y, x_res, y_res)
                 color += trace_path(ray, scene.shapes, 0, 7)
             color /= samples
             pixel_data[y, x, 0] = color.x
