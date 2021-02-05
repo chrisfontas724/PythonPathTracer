@@ -75,7 +75,7 @@ def main():
             color = glm.vec3(0)
             for s in range(samples):
                 ray = scene.camera.generate_ray(x, y, x_res, y_res)
-                color += trace_path(ray, scene.shapes, 0, 7)
+                color += scene.trace_path(ray, 0, 7)
             color /= samples
             pixel_data[y, x, 0] = color.x
             pixel_data[y, x, 1] = color.y
