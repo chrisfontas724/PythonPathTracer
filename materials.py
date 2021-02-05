@@ -15,11 +15,9 @@ class Material:
         return (None, 0)
 
 class DiffuseMaterial(Material):
-    def __init__(self, diffuse=glm.vec3(1), specular=glm.vec3(0), emission = glm.vec3(0), percent=1):
+    def __init__(self, diffuse=glm.vec3(1), emission = glm.vec3(0)):
         self.diffuse_color = diffuse
-        self.specular_color = specular
         self.emissive_color = emission
-        self.diffuse_percent = percent
 
     # The diffuse BRDF is equal in all directions with a cosine falloff.
     def brdf(self, w_i, w_o, n, p):
