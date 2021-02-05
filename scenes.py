@@ -1,11 +1,47 @@
 from cameras import *
 from materials import *
 from shapes import *
+from ray import *
 
 class Scene:
     def __init__(self, camera, shapes):
         self.camera = camera
         self.shapes = shapes
+
+    def find_hit(self, ray):
+        closest_hit = 10000000000
+        final_hit = (-1, None, None)
+        for shape in shapes:
+            hit = shape.intersect(ray)
+            if hit[0] > 0 and hit[0] < closest_hit:
+                closest_hit = hit[0]
+                final_hit = hit
+
+        return final_hit
+
+    def trace_path(self, ray, depth, max_depth):
+        if depth > max_depth:
+            return glm.vec3(0)
+    
+        t, hit_normal, material = find_hit(ray)
+        if t == -1.0:
+            return glm.vec3(0)
+
+        emittance = material.emissive_color
+        hit_point = ray.origin + t*ray.direction
+
+        # Pick a new ray direction which depends on the properties of the given material.
+        newRay, pdf = material.sample_ray(ray, hit_normal, hit_point)
+
+        # The percentage of light transmitted between the incoming and outgoing ray directions.
+        # This changes depending on the type of material.
+        brdf = material.brdf(-ray.direction, newRay.direction, hit_normal, hit_point)
+
+        # Recurse with the new ray and continue accumulating radiance.
+        incoming_light = self.trace_path(newRay, depth + 1, max_depth)
+
+        # The integrand is emittance + BRDF * cosTheta * light.
+        return emittance + brdf * glm.dot(newRay.direction, hit_normal) * incoming_light / pdf
 
 
 class CornellBox(Scene):

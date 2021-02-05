@@ -1,4 +1,7 @@
 import glm 
+import math
+import random
+from ray import *
 
 class Camera:
     def __init__(self):
