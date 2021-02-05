@@ -7,11 +7,14 @@ class Scene:
     def __init__(self, camera, shapes):
         self.camera = camera
         self.shapes = shapes
+  
+    def name(self):
+        return ""
 
     def find_hit(self, ray):
         closest_hit = 10000000000
         final_hit = (-1, None, None)
-        for shape in shapes:
+        for shape in self.shapes:
             hit = shape.intersect(ray)
             if hit[0] > 0 and hit[0] < closest_hit:
                 closest_hit = hit[0]
@@ -23,7 +26,7 @@ class Scene:
         if depth > max_depth:
             return glm.vec3(0)
     
-        t, hit_normal, material = find_hit(ray)
+        t, hit_normal, material = self.find_hit(ray)
         if t == -1.0:
             return glm.vec3(0)
 
@@ -160,3 +163,6 @@ class CornellBox(Scene):
                 DiffuseMaterial(diffuse = glm.vec3(0.7)))
             ]
         Scene.__init__(self, camera, shapes)
+    
+    def name(self):
+        return "CornellBox"
