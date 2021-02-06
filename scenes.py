@@ -216,7 +216,7 @@ class MirrorBalls(Scene):
                       DiffuseMaterial(diffuse = glm.vec3(0), emission = glm.vec3(50, 50, 50))),
 
             # Large Mirror Ball
-            Sphere(radius=150, center=glm.vec3(230, 150, 200), material=MirrorMaterial())
+            Sphere(radius=150, center=glm.vec3(230, 150, 200), material=MirrorMaterial()),
 
             # Small Mirror ball
             Sphere(radius=100, center=glm.vec3(130, 100, 100), material=MirrorMaterial())
