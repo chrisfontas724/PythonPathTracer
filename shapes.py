@@ -1,4 +1,5 @@
 from ray import *
+from materials import *
 
 class BoundingBox:
     def __init__(self, vertices):
@@ -123,10 +124,10 @@ class Rectangle(Mesh):
         Mesh.__init__(self, [v0, v1, v2, v3], [0, 1, 2, 0, 2, 3], material)
 
 class Sphere(Shape):
-    def __init__(self, radius=1.0, center=glm.vec3(0), diffuse=glm.vec3(1), specular=glm.vec3(0), percent=1.0):
+    def __init__(self, radius=1.0, center=glm.vec3(0), material=DiffuseMaterial()):
         self.radius = radius
         self.center = center
-        self.material = Material(diffuse, specular, percent)
+        self.material = material
 
     # Returns the normal vector at a particular point.
     def normal(self, point):
@@ -138,7 +139,7 @@ class Sphere(Shape):
         b = glm.dot(op, ray.direction)
         det = b*b - glm.dot(op, op) + self.radius*self.radius
         if det < 0:
-            return -1.0
+            return (-1, None, None)
         else:
             det = math.sqrt(det)
         t = b - det

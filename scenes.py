@@ -30,7 +30,7 @@ class Scene:
         if t == -1.0:
             return glm.vec3(0)
 
-        emittance = material.emissive_color
+        emittance = material.emission()
         hit_point = ray.origin + t*ray.direction
 
         # Pick a new ray direction which depends on the properties of the given material.
@@ -166,3 +166,63 @@ class CornellBox(Scene):
     
     def name(self):
         return "CornellBox"
+
+
+class MirrorBalls(Scene):
+    def __init__(self):
+        camera = Camera()
+
+        shapes = [
+            # Floor - White
+            Rectangle(glm.vec3(552.8, 0.0, 0.0),
+                      glm.vec3(0),
+                      glm.vec3(0,0, 559.2),
+                      glm.vec3(549.6, 0.0, 559.2),
+                      DiffuseMaterial(diffuse = glm.vec3(0.9))),
+
+            # Left wall - Red
+            Rectangle(glm.vec3(552.8,   0.0,   0.0),
+                      glm.vec3(549.6,   0.0, 559.2),
+                      glm.vec3(556.0, 548.8, 559.2),
+                      glm.vec3(556.0, 548.8,   0.0),
+                      DiffuseMaterial(diffuse = glm.vec3(0.9,0.05,0.05))),
+
+            # Right wall - Green
+            Rectangle(glm.vec3(0.0,  0.0, 559.2),
+                      glm.vec3(0.0,   0.0,   0.0),
+                      glm.vec3(0.0, 548.8,   0.0),
+                      glm.vec3(0.0, 548.8, 559.2),
+                      DiffuseMaterial(diffuse = glm.vec3(0.05,0.9,0.05))),
+
+            # Back wall - White
+            Rectangle(glm.vec3(549.6, 0.0, 559.2),
+                      glm.vec3(0.0,  0.0, 559.2),
+                      glm.vec3(0.0, 548.8, 559.2),
+                      glm.vec3(556.0, 548.8, 559.2),
+                      DiffuseMaterial(diffuse = glm.vec3(0.9))),
+
+            # Ceiling - White
+            Rectangle(glm.vec3(556.0, 548.8, 0.0),
+                      glm.vec3(556.0, 548.8, 559.2),
+                      glm.vec3(0.0, 548.8, 559.2),
+                      glm.vec3(0.0, 548.8, 0.0),
+                      DiffuseMaterial(diffuse = glm.vec3(0.9))),
+
+            # Light
+            Rectangle(glm.vec3(343.0, 548.75, 227.0),
+                      glm.vec3(343.0, 548.75, 332.0),
+                      glm.vec3(213.0, 548.75, 332.0),
+                      glm.vec3(213.0, 548.75, 227.0),
+                      DiffuseMaterial(diffuse = glm.vec3(0), emission = glm.vec3(50, 50, 50))),
+
+            # Large Mirror Ball
+            Sphere(radius=150, center=glm.vec3(230, 150, 200), material=MirrorMaterial())
+
+            # Small Mirror ball
+            Sphere(radius=100, center=glm.vec3(130, 100, 100), material=MirrorMaterial())
+        ]
+            
+        Scene.__init__(self, camera, shapes)
+    
+    def name(self):
+        return "MirrorBalls"

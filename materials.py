@@ -14,6 +14,9 @@ class Material:
     def sample_ray(self, ray, N, P):
         return (None, 0)
 
+    def emission(self):
+        return glm.vec3(0)
+
 class DiffuseMaterial(Material):
     def __init__(self, diffuse=glm.vec3(1), emission = glm.vec3(0)):
         self.diffuse_color = diffuse
@@ -22,6 +25,9 @@ class DiffuseMaterial(Material):
     # The diffuse BRDF is equal in all directions with a cosine falloff.
     def brdf(self, w_i, w_o, n, p):
         return self.diffuse_color / math.pi
+
+    def emission(self):
+        return self.emissive_color
 
     # Returns a vector in the hemisphere around N with a cosine weighted
     # distribution to avoid clumping along with the pdf of cos(theta) / Pi.
@@ -61,5 +67,18 @@ class DiffuseMaterial(Material):
 
 
 class MirrorMaterial(Material):
-    def __init__(self):
-        return
+    def __init__(self, color=glm.vec3(1)):
+        self.color = color
+
+    # The brdf is only valid if w_o is the perfect reflected vector to w_i.
+    def brdf(self, w_i, w_o, n, p):
+        return 1.0
+
+    # Simply return the mirrored ray across the normal with a pdf of 1.
+    def sample_ray(self, ray, N, P):
+        d = glm.vec3(-ray.direction)
+        new_dir = d - 2.0 * glm.dot(d, N) * N
+        new_ray = Ray() 
+        new_ray.dir = new_dir
+        new_ray.origin = P + 0.001 * new_dir
+        return (new_ray, 1.0)

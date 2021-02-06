@@ -38,6 +38,11 @@ def get_options():
                       default=1,
                       help="The number of samples (rays) per pixel.")
 
+    parser.add_option("-c", "--scene",
+                      action="store", # The scene to load up
+                      dest="scene",
+                      default="CornellBox",
+                      help="The scene to load up")
 
     parser.add_option("-l", "--direct_lighting",
                       action="store", # Whether we use direct lighting or not
@@ -56,7 +61,14 @@ def main():
     
     pixel_data = np.zeros((y_res, x_res, 3))
 
-    scene = CornellBox()
+    scene = None
+    if options.scene == "CornellBox":
+        scene = CornellBox()
+    elif options.scene == "MirrorBalls":
+        scene = MirrorBalls()
+    else:
+        print("Invalid scene!")
+        return
 
     q = JoinableQueue()
 
