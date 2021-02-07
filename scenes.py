@@ -41,6 +41,7 @@ class Scene:
         if t == -1.0:
             return glm.vec3(0)
 
+        # Grab the material emittance and calculate the hit point.
         emittance = material.emission()
         hit_point = ray.origin + t*ray.direction
 
