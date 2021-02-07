@@ -6,6 +6,7 @@ from threading import Thread
 from multiprocessing import JoinableQueue
 import sys
 import datetime
+import os
 from scenes import *
     
 # Creates an image from the pixel data.
@@ -38,6 +39,11 @@ def get_options():
                       default=1,
                       help="The number of samples (rays) per pixel.")
 
+    parser.add_option("-c", "--scene",
+                      action="store", # The scene to load up
+                      dest="scene",
+                      default="CornellBox",
+                      help="The scene to load up")
 
     parser.add_option("-l", "--direct_lighting",
                       action="store", # Whether we use direct lighting or not
@@ -56,7 +62,14 @@ def main():
     
     pixel_data = np.zeros((y_res, x_res, 3))
 
-    scene = CornellBox()
+    scene = None
+    if options.scene == "CornellBox":
+        scene = CornellBox()
+    elif options.scene == "MirrorBalls":
+        scene = MirrorBalls()
+    else:
+        print("Invalid scene!")
+        return
 
     q = JoinableQueue()
 
@@ -70,7 +83,7 @@ def main():
             color = glm.vec3(0)
             for s in range(samples):
                 ray = scene.camera.generate_ray(x, y, x_res, y_res)
-                color += scene.trace_path(ray, 0, 7)
+                color += scene.trace_path(ray, 0)
             color /= samples
             pixel_data[y, x, 0] = color.x
             pixel_data[y, x, 1] = color.y
@@ -100,7 +113,9 @@ def main():
     b = datetime.datetime.now()
     print("Time Elapsed: " + str(b-a))
 
-    image_name = scene.name() + "_" + str(x_res) + "x" + str(y_res) + "_" + str(samples) + ".png"
+    if not os.path.isdir(scene.name()):  
+        os.mkdir(scene.name())
+    image_name = scene.name() + "/" + str(x_res) + "x" + str(y_res) + "_" + str(samples) + ".png"
     image = numpy2pil(pixel_data)
     image.save(image_name, "PNG")
 
