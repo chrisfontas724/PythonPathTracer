@@ -6,6 +6,7 @@ from threading import Thread
 from multiprocessing import JoinableQueue
 import sys
 import datetime
+import os
 from scenes import *
     
 # Creates an image from the pixel data.
@@ -112,7 +113,9 @@ def main():
     b = datetime.datetime.now()
     print("Time Elapsed: " + str(b-a))
 
-    image_name = scene.name() + "_" + str(x_res) + "x" + str(y_res) + "_" + str(samples) + ".png"
+    if not os.path.isdir(scene.name()):  
+        os.mkdir(scene.name())
+    image_name = scene.name() + "/" + str(x_res) + "x" + str(y_res) + "_" + str(samples) + ".png"
     image = numpy2pil(pixel_data)
     image.save(image_name, "PNG")
 
