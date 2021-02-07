@@ -70,9 +70,6 @@ class MirrorMaterial(Material):
     def __init__(self, color=glm.vec3(1)):
         self.color = color
 
-    def emission(self):
-        return glm.vec3(0)
-
     # The brdf is only valid if w_o is the perfect reflected vector to w_i.
     def brdf(self, w_i, w_o, n, p):
         test_ray = Ray()
@@ -94,13 +91,10 @@ class GlassMaterial(Material):
     def __init__(self, color=glm.vec3(1), refractive_index=1.0):
         self.color = color
         self.refractive_index = refractive_index
-    
-    def emission(self):
-        return glm.vec3(0)
 
     def brdf(self, w_i, w_o, n, p):
         # TODO
-        return glm.vec3(0)
+        return self.color
 
     def sample_ray(self, ray, N, P):
         I = -ray.direction
@@ -114,7 +108,7 @@ class GlassMaterial(Material):
         eta   = n1 / n2
         c1    = VdotI
         c2    = 1.0 - (eta*eta)*(1.0-(c1*c1))
-        c2           = math.sqrt(c2)
+        c2    = math.sqrt(c2)
         new_dir = V*(eta*c1-c2) - eta*I
 
         new_ray = Ray() 
