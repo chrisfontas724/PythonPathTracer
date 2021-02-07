@@ -12,7 +12,7 @@ class Scene:
         return ""
 
     def find_hit(self, ray):
-        closest_hit = 10000000000
+        closest_hit = 10000000000.0
         final_hit = (-1, None, None)
         for shape in self.shapes:
             hit = shape.intersect(ray)
@@ -22,10 +22,20 @@ class Scene:
 
         return final_hit
 
-    def trace_path(self, ray, depth, max_depth):
-        if depth > max_depth:
+    def trace_path(self, ray, depth):
+        # We apply russian roulette to the current ray on the path,
+        # increasing the termination probability with each new level of depth.
+        # If the ray is not terminated, its contribution is weighted by the
+        # inverse of the termination probability, ensuring that we keep the
+        # final radiance unbiased without having to set a predetermined
+        # bounce depth.
+        termination_probability = 1.0 - math.pow(0.85, depth)
+        terminate = random.uniform(0, 1)
+        if terminate <= termination_probability:
             return glm.vec3(0)
     
+        # Try to find an intersection between the ray and the scene geometry.
+        # Stop traversing and return black if nothing is hit.
         t, hit_normal, material = self.find_hit(ray)
         if t == -1.0:
             return glm.vec3(0)
@@ -42,7 +52,7 @@ class Scene:
         brdf = material.brdf(-ray.direction, newRay.direction, hit_normal, hit_point)
 
         # Recurse with the new ray and continue accumulating radiance.
-        incoming_light = self.trace_path(newRay, depth + 1, max_depth)
+        incoming_light = self.trace_path(newRay, depth + 1) / (1.0 - termination_probability)
 
         # The integrand is emittance + BRDF * cosTheta * light.
         return emittance + brdf * glm.dot(newRay.direction, hit_normal) * incoming_light / pdf
