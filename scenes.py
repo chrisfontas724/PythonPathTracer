@@ -28,8 +28,9 @@ class Scene:
         # If the ray is not terminated, its contribution is weighted by the
         # inverse of the termination probability, ensuring that we keep the
         # final radiance unbiased without having to set a predetermined
-        # bounce depth.
-        termination_probability = 1.0 - math.pow(0.85, depth)
+        # bounce depth. We always do at least 5 bounces though before starting
+        # russian roulette to speed up convergence.
+        termination_probability = 0.0 if depth <= 5 else 1.0 - math.pow(0.9, depth)
         terminate = random.uniform(0, 1)
         if terminate <= termination_probability:
             return glm.vec3(0)
