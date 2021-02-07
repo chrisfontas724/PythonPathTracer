@@ -91,8 +91,9 @@ class MirrorMaterial(Material):
         return (new_ray, 1.0)
 
 class GlassMaterial(Material):
-    def __init__(self, color=glm.vec3(1)):
+    def __init__(self, color=glm.vec3(1), refractive_index=1.0):
         self.color = color
+        self.refractive_index = refractive_index
     
     def emission(self):
         return glm.vec3(0)
@@ -102,5 +103,21 @@ class GlassMaterial(Material):
         return glm.vec3(0)
 
     def sample_ray(self, ray, N, P):
-        # TODO
-        return (ray,  1.0)
+        I = -ray.direction
+        NdotI = glm.dot(N, I)
+        V  = N if NdotI > 0.0 else -N
+
+        n1  = 1.0 if NdotI > 0.0 else self.refractive_index
+        n2  = self.refractive_index if NdotI > 0.0  else 1.0
+        
+        VdotI = glm.dot(V, I)
+        eta   = n1 / n2
+        c1    = VdotI
+        c2    = 1.0 - (eta*eta)*(1.0-(c1*c1))
+        c2           = math.sqrt(c2)
+        new_dir = V*(eta*c1-c2) - eta*I
+
+        new_ray = Ray() 
+        new_ray.direction = new_dir
+        new_ray.origin = P + 0.001 * new_dir
+        return (new_ray, 1.0)
