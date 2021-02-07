@@ -35,6 +35,7 @@ class Scene:
 
         # Pick a new ray direction which depends on the properties of the given material.
         newRay, pdf = material.sample_ray(ray, hit_normal, hit_point)
+        assert pdf >= 0.000001 and pdf <= 1.0
 
         # The percentage of light transmitted between the incoming and outgoing ray directions.
         # This changes depending on the type of material.
@@ -216,7 +217,7 @@ class MirrorBalls(Scene):
                       DiffuseMaterial(diffuse = glm.vec3(0), emission = glm.vec3(50, 50, 50))),
 
             # Large Mirror Ball
-            Sphere(radius=150, center=glm.vec3(330, 150, 300), material=MirrorMaterial()),
+            Sphere(radius=150, center=glm.vec3(370, 150, 350), material=MirrorMaterial()),
 
             # Small Mirror ball
             Sphere(radius=100, center=glm.vec3(130, 100, 100), material=MirrorMaterial())
