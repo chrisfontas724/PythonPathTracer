@@ -89,3 +89,18 @@ class MirrorMaterial(Material):
         new_ray.direction = new_dir
         new_ray.origin = P + 0.001 * new_dir
         return (new_ray, 1.0)
+
+class GlassMaterial(Material):
+    def __init__(self, color=glm.vec3(1)):
+        self.color = color
+    
+    def emission(self):
+        return glm.vec3(0)
+
+    def brdf(self, w_i, w_o, n, p):
+        # TODO
+        return glm.vec3(0)
+
+    def sample_ray(self, ray, N, P):
+        # TODO
+        return (ray,  1.0)
