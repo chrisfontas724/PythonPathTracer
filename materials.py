@@ -72,13 +72,46 @@ class MirrorMaterial(Material):
 
     # The brdf is only valid if w_o is the perfect reflected vector to w_i.
     def brdf(self, w_i, w_o, n, p):
-        return 1.0
+        test_ray = Ray()
+        test_ray.origin = p
+        test_ray.direction = -w_i
+        ray, _ = self.sample_ray(test_ray, n, p)
+        return self.color if glm.dot(ray.direction, w_o) >= 0.99 else glm.vec3(0)
 
     # Simply return the mirrored ray across the normal with a pdf of 1.
     def sample_ray(self, ray, N, P):
-        d = glm.vec3(-ray.direction)
-        new_dir = d - 2.0 * glm.dot(d, N) * N
+        d = glm.vec3(ray.direction)
+        new_dir = glm.normalize(d - 2.0 * glm.dot(d, N) * N)
         new_ray = Ray() 
-        new_ray.dir = new_dir
+        new_ray.direction = new_dir
+        new_ray.origin = P + 0.001 * new_dir
+        return (new_ray, 1.0)
+
+class GlassMaterial(Material):
+    def __init__(self, color=glm.vec3(1), refractive_index=1.0):
+        self.color = color
+        self.refractive_index = refractive_index
+
+    def brdf(self, w_i, w_o, n, p):
+        # TODO
+        return self.color
+
+    def sample_ray(self, ray, N, P):
+        I = -ray.direction
+        NdotI = glm.dot(N, I)
+        V  = N if NdotI > 0.0 else -N
+
+        n1  = 1.0 if NdotI > 0.0 else self.refractive_index
+        n2  = self.refractive_index if NdotI > 0.0  else 1.0
+        
+        VdotI = glm.dot(V, I)
+        eta   = n1 / n2
+        c1    = VdotI
+        c2    = 1.0 - (eta*eta)*(1.0-(c1*c1))
+        c2    = math.sqrt(c2)
+        new_dir = V*(eta*c1-c2) - eta*I
+
+        new_ray = Ray() 
+        new_ray.direction = new_dir
         new_ray.origin = P + 0.001 * new_dir
         return (new_ray, 1.0)
